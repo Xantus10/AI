@@ -7,4 +7,6 @@ This repository is just a collection of many simple Neural Networks that I use t
 - CNN - Convolutional Neural Network
 - LLM - Large Language Models
 
-(FUrther descriptions in each repository)
+(Further descriptions in each repository)
+
+Developed with pytorch
