@@ -44,9 +44,13 @@ class ImageProcessingLayer(nn.Module):
     inp_size = IMG_CHANNELS if layer_ix == 0 else BASE_FEATURES * layer_ix
     out_size = BASE_FEATURES * (layer_ix+1)
     self.layer = nn.Sequential(
+      # The convolution - Learnable matrix will slide accross the image and pick up edges/shapes
       nn.Conv2d(inp_size, out_size, kernel_size=3, padding=1),
+      # Normalize the (potentially large) values to be smaller and around 0
       nn.BatchNorm2d(out_size),
+      # Non-linearity, -n => 0
       nn.ReLU(inplace=True),
+      # Select the max value in the kernel -> Will shrink the image H/W by 1/2 (75% data)
       nn.MaxPool2d(kernel_size=2, stride=2)
     )
   
@@ -67,13 +71,19 @@ class ImageRecognitionModel(nn.Module):
     - image_processing_layers: Number of convolution layers
     """
     super().__init__()
+    # Image processing layers - Extract shapes/edges/textures
     self.img_processing = nn.Sequential(
       *[ImageProcessingLayer(i) for i in range(image_processing_layers)]
     )
+    # Flatten the 2D image into a 1D array
     self.flatten = nn.Flatten()
+    # First linear layer of the network, will output the visual features
     self.hidden_layer = nn.Linear(BASE_FEATURES * image_processing_layers * ((IMG_DIMENSIONS // (2*image_processing_layers))**2), HIDDEN_LAYER)
+    # Non-linearity between the Linear layers
     self.relu = nn.ReLU(inplace=True)
+    # Avoid overfitting
     self.dropout = nn.Dropout(DROPOUT)
+    # Final mapping layer, will output the result of the prediction
     self.final_layer = nn.Linear(HIDDEN_LAYER, OUTPUT_NUMBERS)
   
   def forward(self, x, target = None):
