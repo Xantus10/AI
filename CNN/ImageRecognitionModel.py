@@ -2,9 +2,6 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as FUN
 
-from helper.functions import loadDataCSV
-from helper.Trainer import Trainer
-
 ### Constants
 # Channels of the image
 IMG_CHANNELS = 1 # Greyscale
@@ -101,6 +98,8 @@ class ImageRecognitionModel(nn.Module):
     return res, loss
 
 if __name__ == '__main__':
+  from helper.functions import loadDataCSV
+  from helper.Trainer import Trainer
   print('Loading data...', end='')
 
   train_data = loadDataCSV(r'MNIST\mnist_train.csv', image_channels=IMG_CHANNELS, image_dimenisons=(IMG_DIMENSIONS, IMG_DIMENSIONS))
