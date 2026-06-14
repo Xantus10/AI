@@ -110,7 +110,7 @@ class FeedForward(nn.Module):
       # Expand the n_embed into 4x larger layer
       nn.Linear(n_embed, 4 * n_embed),
       # Non-linearity
-      nn.GELU(),
+      nn.GELU(approximate='tanh'),
       # Reduce back to n_embed
       nn.Linear(4 * n_embed, n_embed),
       nn.Dropout(DROPOUT)
