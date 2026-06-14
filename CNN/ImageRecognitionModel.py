@@ -42,7 +42,7 @@ class ImageProcessingLayer(nn.Module):
     out_size = BASE_FEATURES * (layer_ix+1)
     self.layer = nn.Sequential(
       # The convolution - Learnable matrix will slide accross the image and pick up edges/shapes
-      nn.Conv2d(inp_size, out_size, kernel_size=3, padding=1),
+      nn.Conv2d(inp_size, out_size, kernel_size=3, padding=1, bias=False),
       # Normalize the (potentially large) values to be smaller and around 0
       nn.BatchNorm2d(out_size),
       # Non-linearity, -n => 0
