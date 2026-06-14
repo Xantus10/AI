@@ -7,8 +7,8 @@ from torch.nn import functional as FUN
 BLOCK_SIZE = 128
 # Paralel processing (efficiency)
 BATCH_SIZE = 16
-# Learning steps
-STEPS = 1000
+# Learning epochs
+EPOCHS = 8
 # Learning rate
 LEARNING_RATE = 6e-4
 # Enable running on GPU
@@ -226,7 +226,7 @@ if __name__ == '__main__':
   model = GPTTransformer(tokenizer.vocab_size).to(DEVICE)
   optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
-  trainer = Trainer(model, optimizer, tokenizer, BLOCK_SIZE, BATCH_SIZE, STEPS, DEVICE)
+  trainer = Trainer(model, optimizer, tokenizer, BLOCK_SIZE, BATCH_SIZE, EPOCHS, DEVICE)
 
   print('Start training')
 

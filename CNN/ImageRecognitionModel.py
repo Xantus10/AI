@@ -10,13 +10,13 @@ IMG_DIMENSIONS = 28
 # Output numbers
 OUTPUT_NUMBERS = 10
 # Batch size
-BATCH_SIZE = 4
+BATCH_SIZE = 16
 # How many base features should the network recognize
 BASE_FEATURES = 20
 # How many base features should the network recognize
 HIDDEN_LAYER = 160
-# Learning steps
-STEPS = 800
+# Learning epochs
+EPOCHS = 1
 # Learning rate
 LEARNING_RATE = 3e-4
 # Enable running on GPU
@@ -113,7 +113,7 @@ if __name__ == '__main__':
   model = ImageRecognitionModel().to(DEVICE)
   optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-  trainer = Trainer(model, optimizer, BATCH_SIZE, STEPS, DEVICE)
+  trainer = Trainer(model, optimizer, BATCH_SIZE, EPOCHS, DEVICE)
 
   print('Start training')
 

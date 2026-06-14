@@ -8,7 +8,7 @@ class Trainer:
   """
   Wrapper class for training and evaluation of Neural Network
   """
-  def __init__(self, model: torch.nn.Module, optimizer: torch.optim.Optimizer, tokenizer: Tokenizer, block_size: int, batch_size: int, steps: int, device: torch.device | None = None):
+  def __init__(self, model: torch.nn.Module, optimizer: torch.optim.Optimizer, tokenizer: Tokenizer, block_size: int, batch_size: int, epochs: int, device: torch.device | None = None):
     """
     Wrapper class for training and evaluation of Neural Network
 
@@ -19,7 +19,7 @@ class Trainer:
     - tokenizer: Used tokenizer
     - block_size: Your configured block size
     - batch_size: Your configured batch size
-    - steps: How many training steps to perform
+    - epochs: How many training epochs to perform
     - device (Optional): Device to use
     """
     self.model = model
@@ -27,8 +27,14 @@ class Trainer:
     self.tokenizer = tokenizer
     self.block_size = block_size
     self.batch_size = batch_size
-    self.steps = steps
+    self.epochs = epochs
     self.device = device
+  
+  def _calculateSteps(self, dataset_size: int):
+    """
+    Calculate how many training steps to perform
+    """
+    return (dataset_size // (self.batch_size * self.block_size)) * self.epochs
   
   def train(self, train_data, print_progress: bool = False):
     """
@@ -45,8 +51,10 @@ class Trainer:
     """
     self.model.train()
     start = perf_counter()
-    for step in range(self.steps):
-      if print_progress and (step % (self.steps//100)) == 0: print(f'{step // (self.steps//100)}%')
+    steps = self._calculateSteps(len(train_data))
+    if print_progress: print(f'Learning steps: {steps}')
+    for step in range(steps):
+      if print_progress and (step % (steps//100)) == 0: print(f'{step // (steps//100)}%')
       # Get training data
       base_data, predict_data = getBatch(train_data, self.block_size, self.batch_size)
       predict_data = predict_data.to(self.device)

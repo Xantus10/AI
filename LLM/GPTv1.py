@@ -7,8 +7,8 @@ from torch.nn import functional as FUN
 BLOCK_SIZE = 8
 # Paralel processing (efficiency)
 BATCH_SIZE = 32
-# Learning steps
-STEPS = 30000
+# Learning epochs
+EPOCHS = 10
 # Learning rate
 LEARNING_RATE = 1e-3
 # Enable running on GPU
@@ -68,7 +68,7 @@ if __name__ == '__main__':
   from helper.tokenizer.Character import Character
   print('Loading data...', end='')
 
-  data = loadData(r'C:\Users\ZabaJa\Desktop\AIs\input.txt')
+  data = loadData(r'input.txt')
   print('Done\n')
 
   print(f'Data: {len(data)} characters')
@@ -78,7 +78,7 @@ if __name__ == '__main__':
   model = BigramLangModel(tokenizer.vocab_size).to(DEVICE)
   optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-  trainer = Trainer(model, optimizer, tokenizer, BLOCK_SIZE, BATCH_SIZE, STEPS, DEVICE)
+  trainer = Trainer(model, optimizer, tokenizer, BLOCK_SIZE, BATCH_SIZE, EPOCHS, DEVICE)
 
   print('Start training')
 
