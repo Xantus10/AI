@@ -52,7 +52,11 @@ class Trainer:
     self.model.train()
     start = perf_counter()
     steps = self._calculateSteps(len(train_data))
-    if print_progress: print(f'Learning steps: {steps}')
+    if print_progress:
+      print_step = round(steps/100)
+      steps_since_print = 0
+      total_loss = 0.0
+      print(f'Learning steps: {steps}')
     for step in range(steps):
       if print_progress and (step % (steps//100)) == 0: print(f'{step // (steps//100)}%')
       # Get training data
@@ -65,10 +69,16 @@ class Trainer:
       self.optimizer.zero_grad(set_to_none=True)
       loss.backward()
       self.optimizer.step()
+      if print_progress:
+        steps_since_print += 1
+        total_loss += loss.item()
+        if (step % print_step) == 0:
+          print(f'{(step // print_step)+1}% - Loss: {round(total_loss / steps_since_print, 3)}')
+          steps_since_print = 0
+          total_loss = 0.0
     end = perf_counter()
 
     if print_progress: print(f'Time spent learning: {round(end-start, 2)} s')
-    print(loss.item())
     return round(end-start, 2)
 
   def generate(self, count: int = 100):
