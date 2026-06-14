@@ -58,7 +58,6 @@ class Trainer:
       total_loss = 0.0
       print(f'Learning steps: {steps}')
     for step in range(steps):
-      if print_progress and (step % (steps//100)) == 0: print(f'{step // (steps//100)}%')
       # Get training data
       base_data, predict_data = getBatch(train_data, self.block_size, self.batch_size)
       predict_data = predict_data.to(self.device)
