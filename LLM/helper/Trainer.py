@@ -34,47 +34,57 @@ class Trainer:
     """
     Calculate how many training steps to perform
     """
-    return (dataset_size // (self.batch_size * self.block_size)) * self.epochs
+    return (dataset_size // (self.batch_size * self.block_size))
   
-  def train(self, train_data, print_progress: bool = False):
+  def train(self, train_data, validation_data = None, print_progress: bool = False):
     """
     Train the Neural network
 
     Parameters
     ----------
     - train_data: The data to use for training
+    - validation_data (optional): The data to use for validation after each epoch
     - print_progress: Should the function print the training progress
 
     Return
     ------
     Time spent learning (in seconds)
     """
-    self.model.train()
     start = perf_counter()
     steps = self._calculateSteps(len(train_data))
+    total_loss = 0.0
+    if not validation_data is None:
+      val_steps = self._calculateSteps(len(validation_data))
     if print_progress:
-      print_step = round(steps/100)
-      steps_since_print = 0
-      total_loss = 0.0
-      print(f'Learning steps: {steps}')
-    for step in range(steps):
-      # Get training data
-      base_data, predict_data = getBatch(train_data, self.block_size, self.batch_size)
-      predict_data = predict_data.to(self.device)
-      base_data = base_data.to(self.device)
-      # Evaluate the loss
-      _, loss = self.model(base_data, predict_data)
-      # Zero out the gradients from the prev step
-      self.optimizer.zero_grad(set_to_none=True)
-      loss.backward()
-      self.optimizer.step()
-      if print_progress:
-        steps_since_print += 1
+      print(f'Epochs / Steps per epoch: {self.epochs} / {steps}')
+      print('Epoch - Training loss - Validation loss')
+    for e in range(self.epochs):
+      self.model.train()
+      for step in range(steps):
+        # Get training data
+        base_data, predict_data = getBatch(train_data, self.block_size, self.batch_size)
+        predict_data = predict_data.to(self.device)
+        base_data = base_data.to(self.device)
+        # Evaluate the loss
+        _, loss = self.model(base_data, predict_data)
+        # Zero out the gradients from the prev step
+        self.optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        self.optimizer.step()
         total_loss += loss.item()
-        if (step % print_step) == 0:
-          print(f'{(step // print_step)+1}% - Loss: {round(total_loss / steps_since_print, 3)}')
-          steps_since_print = 0
-          total_loss = 0.0
+      val_loss = 0.0
+      if not validation_data is None:
+        self.model.eval()
+        with torch.no_grad():
+          for _ in range(val_steps):
+            base_data, predict_data = getBatch(validation_data, self.block_size, self.batch_size)
+            predict_data = predict_data.to(self.device)
+            base_data = base_data.to(self.device)
+            _, loss = self.model(base_data, predict_data)
+            val_loss += loss.item()
+      if print_progress:
+        print(f'{e+1:<5} - {round(total_loss / steps, 3):^13} - {round(val_loss / val_steps, 3) if not validation_data is None else '-':^15}')
+      total_loss = 0.0
     end = perf_counter()
 
     if print_progress: print(f'Time spent learning: {round(end-start, 2)} s')
