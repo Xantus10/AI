@@ -110,7 +110,7 @@ class FeedForward(nn.Module):
       # Expand the n_embed into 4x larger layer
       nn.Linear(n_embed, 4 * n_embed),
       # Non-linearity
-      nn.ReLU(),
+      nn.GELU(),
       # Reduce back to n_embed
       nn.Linear(4 * n_embed, n_embed),
       nn.Dropout(DROPOUT)
@@ -216,7 +216,7 @@ if __name__ == '__main__':
   from helper.tokenizer.Character import Character
   print('Loading data...', end='')
 
-  data = loadData(r'C:\Users\ZabaJa\Desktop\AIs\input.txt')
+  data = loadData(r'input.txt')
   print('Done\n')
 
   print(f'Data: {len(data)} characters')
