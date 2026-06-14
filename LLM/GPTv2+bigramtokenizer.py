@@ -1,8 +1,5 @@
 import torch
-from GPTv2 import GPTTransformer, BLOCK_SIZE, BATCH_SIZE, DEVICE
-
-LEARNING_RATE = 3e-4
-STEPS = 2000
+from GPTv2 import GPTTransformer, BLOCK_SIZE, BATCH_SIZE, DEVICE, LEARNING_RATE, EPOCHS
 
 if __name__ == '__main__':
   from helper.functions import loadData
@@ -10,22 +7,26 @@ if __name__ == '__main__':
   from helper.tokenizer.FreqBigram import FreqBigram
   print('Loading data...', end='')
 
-  data = loadData(r'C:\Users\ZabaJa\Desktop\AIs\input.txt')
+  data = loadData(r'input.txt')
   print('Done\n')
 
   print(f'Data: {len(data)} characters')
 
-  tokenizer = FreqBigram(data, 90)
+  tokenizer = FreqBigram(data, 120)
 
   model = GPTTransformer(tokenizer.vocab_size).to(DEVICE)
   optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
-  trainer = Trainer(model, optimizer, tokenizer, BLOCK_SIZE, BATCH_SIZE, STEPS, DEVICE)
+  trainer = Trainer(model, optimizer, tokenizer, BLOCK_SIZE, BATCH_SIZE, EPOCHS, DEVICE)
 
   print('Start training')
 
-  train_data = torch.tensor(tokenizer.tokenize(data), dtype=torch.long)
+  data = torch.tensor(tokenizer.tokenize(data), dtype=torch.long)
 
-  trainer.train(train_data, print_progress=True)
+  training_split = int(0.9 * len(data))
+  train_data = data[:training_split]
+  val_data = data[training_split:]
+
+  trainer.train(train_data, val_data, print_progress=True)
 
   print(trainer.generate(400))

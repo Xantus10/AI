@@ -6,9 +6,9 @@ from torch.nn import functional as FUN
 # Size of training blocks
 BLOCK_SIZE = 128
 # Paralel processing (efficiency)
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 # Learning epochs
-EPOCHS = 8
+EPOCHS = 16
 # Learning rate
 LEARNING_RATE = 6e-4
 # Enable running on GPU
@@ -230,8 +230,12 @@ if __name__ == '__main__':
 
   print('Start training')
 
-  train_data = torch.tensor(tokenizer.tokenize(data), dtype=torch.long)
+  data = torch.tensor(tokenizer.tokenize(data), dtype=torch.long)
 
-  trainer.train(train_data, print_progress=True)
+  training_split = int(0.9 * len(data))
+  train_data = data[:training_split]
+  val_data = data[training_split:]
+
+  trainer.train(train_data, val_data, print_progress=True)
 
   print(trainer.generate(400))
