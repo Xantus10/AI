@@ -90,7 +90,7 @@ class Trainer:
     if print_progress: print(f'Time spent learning: {round(end-start, 2)} s')
     return round(end-start, 2)
 
-  def generate(self, count: int = 100):
+  def generate(self, count: int = 100, start = torch.zeros((1, 1), dtype=torch.long)):
     """
     Evaluate the Neural network
 
@@ -105,6 +105,5 @@ class Trainer:
     self.model.eval()
 
     with torch.no_grad():
-      start = torch.zeros((1, 1), dtype=torch.long)
       generated = self.model.generate(start, max_new_tokens=count)
       return self.tokenizer.detokenize(generated[0].tolist())
