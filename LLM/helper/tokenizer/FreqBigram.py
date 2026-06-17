@@ -16,6 +16,7 @@ class FreqBigram(Tokenizer):
     ----------
     - text: The text which will be tokenized
     - bigrams: How many most frequent bigrams to take into account
+    - special_tokens: Special character sequences that should always be treated as separate tokens
     """
     self.chars = sorted(list(set(text)))
     self.no_bigrams = bigrams
@@ -48,21 +49,18 @@ class FreqBigram(Tokenizer):
       return [self.stoi[s]]
     ret = []
     i = 0
-    ln = len(s)
-    chk_last = False
-    if ln % 2 == 1:
-      ln -= 1
-      chk_last = True
-    while i < ln:
-      c = s[i:i+2]
-      if c in self.stoi.keys():
-        ret.append(self.stoi[c])
-        i += 1
+    ln = len(s) - 1
+    while i <= ln:
+      if i == ln:
+        ret.append(self.stoi[s[-1]])
       else:
-        ret.append(self.stoi[c[0]])
+        c = s[i:i+2]
+        if c in self.stoi.keys():
+          ret.append(self.stoi[c])
+          i += 1
+        else:
+          ret.append(self.stoi[c[0]])
       i += 1
-    if chk_last:
-      ret.append(self.stoi[s[-1]])
 
     return ret
   
