@@ -1,17 +1,18 @@
 import torch
 
 
-def loadData(filepath: str):
+def loadData(filepath: str, size: int = -1):
   """
   Load the text data.
 
   Parameters
   ----------
   - filepath: The path to the file
+  - size: How many characters to read
   """
-  with open(filepath, 'r') as f:
+  with open(filepath, 'r', encoding='utf-8') as f:
     # Content of training set
-    return f.read()
+    return f.read(size)
 
 def getBatch(data, block_size: int, batch_size: int):
   """
