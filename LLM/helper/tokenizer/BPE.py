@@ -1,0 +1,75 @@
+from .Tokenizer import Tokenizer
+
+import re
+from collections import defaultdict
+from heapq import nlargest
+
+class BPE(Tokenizer):
+  """
+  Tokenizer using the Byte Pair Encoding (Primitive, Not optimized)
+  """
+  def __init__(self, text: str, target_vocab_size: int = 300, special_tokens: list[str] = []):
+    """
+    Tokenizer using the Byte Pair Encoding
+
+    Parameters
+    ----------
+    - text: The text which will be tokenized
+    - target_vocab_size: Continue with the BPE until this threshold
+    - special_tokens: Special character sequences that should always be treated as separate tokens
+    """
+    self.chars = sorted(list(set(text)))
+    self.target_vocab_size = target_vocab_size
+    super().__init__(len(self.chars),
+                     {c: i for i, c in enumerate(self.chars)},
+                     {i: c for i, c in enumerate(self.chars)})
+    self._runBPE(text)
+
+    self.special_tokens = special_tokens
+    self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})')
+    self.chars += special_tokens
+  
+  def _runBPE(self, text: str):
+    tokens = self._toTokens(text)
+    while self.vocab_size < self.target_vocab_size:
+      merger = self._findMergeToken(tokens)
+      self._mergeBytePair(tokens, merger)
+
+  def _toTokens(self, s: str):
+    return [self.stoi[c] for c in s]
+
+  def _findMergeToken(self, tokens: list[int]):
+    bigrams_freq = defaultdict(int)
+
+    for i in range(len(tokens)-1):
+      bigrams_freq[(tokens[i], tokens[i+1])] += 1
+
+    return nlargest(1, bigrams_freq, bigrams_freq.get)[0]
+  
+  def _mergeBytePair(self, tokens: list[int], merger: tuple[int, int]):
+    new_token_id = self._addToken(merger)
+    ln = len(tokens)-1
+    i = 0
+    while i < ln:
+      if (tokens[i], tokens[i+1]) == merger:
+        tokens[i:i+2] = [new_token_id]
+        ln -= 1
+      i += 1
+
+  def _addToken(self, token: tuple[int, int]):
+    self.stoi[token] = self.vocab_size
+    self.itos[self.vocab_size] = token
+    self.vocab_size += 1
+    return self.vocab_size-1
+
+  def tokenize(self, s):
+    ret = re.split(self.special_regex, s)
+    return [token for item in ret for token in self._subtokenize(item)]
+
+  def _subtokenize(self, s):
+    if s in self.special_tokens:
+      return [self.stoi[s]]
+    tokens = self._toTokens(s)
+  
+  def detokenize(self, l):
+    pass
