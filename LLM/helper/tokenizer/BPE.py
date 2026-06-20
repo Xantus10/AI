@@ -1,4 +1,4 @@
-from .Tokenizer import Tokenizer
+from Tokenizer import Tokenizer
 
 import re
 from collections import defaultdict
@@ -26,9 +26,9 @@ class BPE(Tokenizer):
     self._runBPE(text)
 
     self.special_tokens = special_tokens
-    self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})')
+    self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})') if len(special_tokens) > 0 else re.compile('(?!)')
     self.chars += special_tokens
-  
+
   def _runBPE(self, text: str):
     tokens = self._toTokens(text)
     while self.vocab_size < self.target_vocab_size:
@@ -70,6 +70,20 @@ class BPE(Tokenizer):
     if s in self.special_tokens:
       return [self.stoi[s]]
     tokens = self._toTokens(s)
-  
+    keys = list(self.stoi.keys())
+    changed = True
+    while changed:
+      changed = False
+      i = 0
+      ln = len(tokens)-1
+      while i < ln:
+        pair = (tokens[i], tokens[i+1])
+        if pair in keys:
+          tokens[i:i+2] = [self.stoi[pair]]
+          changed = True
+          ln -= 1
+        i += 1
+    return tokens
+
   def detokenize(self, l):
     pass
