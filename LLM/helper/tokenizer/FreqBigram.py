@@ -23,7 +23,7 @@ class FreqBigram(Tokenizer):
     self._addBigramsToChars(text)
 
     self.special_tokens = special_tokens
-    self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})')
+    self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})') if len(special_tokens) > 0 else re.compile('(?!)')
     self.chars += special_tokens
 
     super().__init__(len(self.chars),
