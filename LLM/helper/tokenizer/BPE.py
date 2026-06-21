@@ -1,4 +1,4 @@
-from Tokenizer import Tokenizer
+from .Tokenizer import Tokenizer
 
 import re
 from collections import defaultdict
@@ -20,14 +20,16 @@ class BPE(Tokenizer):
     """
     self.chars = sorted(list(set(text)))
     self.target_vocab_size = target_vocab_size
-    super().__init__(len(self.chars),
-                     {c: i for i, c in enumerate(self.chars)},
-                     {i: c for i, c in enumerate(self.chars)})
-    self._runBPE(text)
+    self.target_vocab_size += len(special_tokens)
 
     self.special_tokens = special_tokens
     self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})') if len(special_tokens) > 0 else re.compile('(?!)')
     self.chars += special_tokens
+
+    super().__init__(len(self.chars),
+                     {c: i for i, c in enumerate(self.chars)},
+                     {i: c for i, c in enumerate(self.chars)})
+    self._runBPE(text)
 
   def _runBPE(self, text: str):
     tokens = self._toTokens(text)
@@ -86,4 +88,14 @@ class BPE(Tokenizer):
     return tokens
 
   def detokenize(self, l):
-    pass
+    compound = True
+    while compound:
+      compound = False
+      i = 0
+      while i < len(l):
+        if not isinstance(l[i], str):
+          sub = self.itos[l[i]]
+          if isinstance(sub, tuple): compound = True
+          l[i:i+1] = sub
+        i += 1
+    return ''.join(l)
