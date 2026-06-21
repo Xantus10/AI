@@ -8,7 +8,7 @@ class BPE(Tokenizer):
   """
   Tokenizer using the Byte Pair Encoding (Primitive, Not optimized)
   """
-  def __init__(self, text: str, target_vocab_size: int = 300, special_tokens: list[str] = []):
+  def __init__(self, text: str, target_vocab_size: int = 300, special_tokens: list[str] = [], print_progress: bool=False):
     """
     Tokenizer using the Byte Pair Encoding
 
@@ -17,10 +17,13 @@ class BPE(Tokenizer):
     - text: The text which will be tokenized
     - target_vocab_size: Continue with the BPE until this threshold
     - special_tokens: Special character sequences that should always be treated as separate tokens
+    - print_progress: Print the BPE algorithm progress
     """
     self.chars = sorted(list(set(text)))
     self.target_vocab_size = target_vocab_size
     self.target_vocab_size += len(special_tokens)
+
+    self.print_progress = print_progress
 
     self.special_tokens = special_tokens
     self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})') if len(special_tokens) > 0 else re.compile('(?!)')
@@ -36,6 +39,7 @@ class BPE(Tokenizer):
     while self.vocab_size < self.target_vocab_size:
       merger = self._findMergeToken(tokens)
       self._mergeBytePair(tokens, merger)
+      if self.print_progress: print(f'Vocab size: {self.vocab_size} of {self.target_vocab_size}')
 
   def _toTokens(self, s: str):
     return [self.stoi[c] for c in s]
