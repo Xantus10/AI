@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 class Tokenizer(ABC):
   """
   Template class for all tokenizers
   """
-  def __init__(self, vocab_size: int, stoi: dict[str, int], itos: dict[int, str]):
+  def __init__(self, vocab_size: int, stoi: dict[Any, int], itos: dict[int, Any]):
     """
     Template class for all tokenizers
 
