@@ -37,28 +37,44 @@ class BPE(Tokenizer):
   def _runBPE(self, text: str):
     tokens = self._toTokens(text)
     while self.vocab_size < self.target_vocab_size:
-      merger = self._findMergeToken(tokens)
-      self._mergeBytePair(tokens, merger)
+      mergers = self._findMergeTokens(tokens)
+      self._mergeBytePairs(tokens, mergers)
       if self.print_progress: print(f'Vocab size: {self.vocab_size} of {self.target_vocab_size}')
 
   def _toTokens(self, s: str):
     return [self.stoi[c] for c in s]
 
-  def _findMergeToken(self, tokens: list[int]):
+  def _findMergeTokens(self, tokens: list[int]):
     bigrams_freq = defaultdict(int)
 
     for i in range(len(tokens)-1):
       bigrams_freq[(tokens[i], tokens[i+1])] += 1
+    
+    n = 1 if self.vocab_size > int(self.target_vocab_size * 0.7) else max(1, (self.target_vocab_size - self.vocab_size) // 10)
 
-    return nlargest(1, bigrams_freq, bigrams_freq.get)[0]
+    largest = nlargest(n, bigrams_freq, bigrams_freq.get)
+
+    if n == 1: return largest
+
+    uniq = []
+    ret = []
+
+    for t in largest:
+      if t[0] in uniq or t[1] in uniq:
+        continue
+      uniq.append(t[0])
+      uniq.append(t[1])
+      ret.append(t)
+    
+    return ret
   
-  def _mergeBytePair(self, tokens: list[int], merger: tuple[int, int]):
-    new_token_id = self._addToken(merger)
+  def _mergeBytePairs(self, tokens: list[int], mergers: tuple[int, int]):
+    new_token_ids = [self._addToken(t) for t in mergers]
     ln = len(tokens)-1
     i = 0
     while i < ln:
-      if (tokens[i], tokens[i+1]) == merger:
-        tokens[i:i+2] = [new_token_id]
+      if (tokens[i], tokens[i+1]) in mergers:
+        tokens[i:i+2] = [new_token_ids[mergers.index((tokens[i], tokens[i+1]))]]
         ln -= 1
       i += 1
 
