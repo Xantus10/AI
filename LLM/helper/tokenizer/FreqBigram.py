@@ -1,10 +1,9 @@
-import re
 from collections import defaultdict
 from heapq import nlargest
 
-from .Tokenizer import Tokenizer
+from .TokenizerSpecialTokens import TokenizerSpecialTokens
 
-class FreqBigram(Tokenizer):
+class FreqBigram(TokenizerSpecialTokens):
   """
   Tokenizer using the most frequent bigrams in the text + characters
   """
@@ -22,13 +21,10 @@ class FreqBigram(Tokenizer):
     self.no_bigrams = bigrams
     self._addBigramsToChars(text)
 
-    self.special_tokens = special_tokens
-    self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})') if len(special_tokens) > 0 else re.compile('(?!)')
-    self.chars += special_tokens
-
     super().__init__(len(self.chars),
                      {c: i for i, c in enumerate(self.chars)},
-                     {i: c for i, c in enumerate(self.chars)})
+                     {i: c for i, c in enumerate(self.chars)},
+                     special_tokens)
   
   def _addBigramsToChars(self, text: str):
     bigrams_freq = defaultdict(int)
@@ -41,7 +37,7 @@ class FreqBigram(Tokenizer):
     self.chars += frequent_bigrams
 
   def tokenize(self, s):
-    ret = re.split(self.special_regex, s)
+    ret = self.splitSpecialTokens(s)
     return [token for item in ret for token in self._subtokenize(item)]
 
   def _subtokenize(self, s):

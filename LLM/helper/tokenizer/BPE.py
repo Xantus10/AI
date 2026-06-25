@@ -1,10 +1,9 @@
-from .Tokenizer import Tokenizer
+from .TokenizerSpecialTokens import TokenizerSpecialTokens
 
-import re
 from collections import defaultdict
 from heapq import nlargest
 
-class BPE(Tokenizer):
+class BPE(TokenizerSpecialTokens):
   """
   Tokenizer using the Byte Pair Encoding (Primitive, Not optimized)
   """
@@ -20,18 +19,15 @@ class BPE(Tokenizer):
     - print_progress: Print the BPE algorithm progress
     """
     self.chars = sorted(list(set(text)))
-    self.target_vocab_size = target_vocab_size
-    self.target_vocab_size += len(special_tokens)
-
     self.print_progress = print_progress
-
-    self.special_tokens = special_tokens
-    self.special_regex = re.compile(f'({"|".join([re.escape(s) for s in special_tokens])})') if len(special_tokens) > 0 else re.compile('(?!)')
-    self.chars += special_tokens
 
     super().__init__(len(self.chars),
                      {c: i for i, c in enumerate(self.chars)},
-                     {i: c for i, c in enumerate(self.chars)})
+                     {i: c for i, c in enumerate(self.chars)},
+                     special_tokens)
+    
+    self.target_vocab_size = target_vocab_size
+    self.target_vocab_size += len(special_tokens)
     self._runBPE(text)
 
   def _runBPE(self, text: str):
@@ -42,6 +38,12 @@ class BPE(Tokenizer):
       if self.print_progress: print(f'Vocab size: {self.vocab_size} of {self.target_vocab_size}')
 
   def _toTokens(self, s: str):
+    ret = self.splitSpecialTokens(s)
+    return [token for item in ret for token in self._handleStoi(item)]
+
+  def _handleStoi(self, s: str):
+    if s in self.special_tokens:
+      return [self.stoi[s]]
     return [self.stoi[c] for c in s]
 
   def _findMergeTokens(self, tokens: list[int]):
@@ -85,7 +87,7 @@ class BPE(Tokenizer):
     return self.vocab_size-1
 
   def tokenize(self, s):
-    ret = re.split(self.special_regex, s)
+    ret = self.splitSpecialTokens(s)
     return [token for item in ret for token in self._subtokenize(item)]
 
   def _subtokenize(self, s):
@@ -119,3 +121,9 @@ class BPE(Tokenizer):
           l[i:i+1] = sub
         i += 1
     return ''.join(l)
+
+#t = BPE('a|end|a|end|b', 8, ['|end|'], True)
+#x = 'a|end|a|end|b'
+#print(t.stoi)
+#print(t.tokenize(x))
+#print(t.detokenize(t.tokenize(x)))
